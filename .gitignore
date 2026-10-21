@@ -1,0 +1,18 @@
+# Model outputs contain harmful text. Never commit them.
+outputs/
+
+# Downloaded question sets (public, but no need to redistribute)
+data/raw/
+data/prompts.jsonl
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store

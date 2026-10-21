@@ -1,0 +1,19 @@
+# First end-to-end run: small, fast, no randomness.
+# 50 XSTest (25 harmless + 25 harmful) + 50 StrongREJECT, each asked once.
+name: smoke
+model: gemma4:e4b
+engine:
+  type: ollama
+  url: http://localhost:11434
+  mode: chat            # normal use: Ollama applies the chat template
+  think: false          # skip "thinking" output if the model has it
+system: null            # null = keep the model's default system prompt (if any)
+generation:
+  temperature: 0
+  seed: 0
+  max_tokens: 512
+repeats: 1
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0               # same seed = same questions, so runs can be compared

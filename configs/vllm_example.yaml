@@ -1,0 +1,18 @@
+# For later (cloud GPU): any OpenAI-compatible server - vLLM, or llama.cpp's llama-server.
+#   vLLM:       vllm serve Qwen/Qwen3-4B --port 8000
+#   llama.cpp:  llama-server -m qwen3-4b-q4_k_m.gguf --port 8000
+name: vllm-qwen3-4b
+model: Qwen/Qwen3-4B
+engine:
+  type: openai
+  url: http://localhost:8000
+system: null
+generation:
+  temperature: 0
+  seed: 0
+  max_tokens: 512
+repeats: 1
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0

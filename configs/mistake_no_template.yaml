@@ -1,0 +1,18 @@
+# Planted setup mistake: send the bare question with NO chat template.
+# Compare against smoke.yaml with: dsg compare <smoke run> <this run>
+name: mistake-no-template
+model: gemma4:e4b
+engine:
+  type: ollama
+  url: http://localhost:11434
+  mode: raw_no_template
+system: null
+generation:
+  temperature: 0
+  seed: 0
+  max_tokens: 512
+repeats: 1
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0

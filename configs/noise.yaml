@@ -1,0 +1,19 @@
+# Noise measurement: same questions, randomness on, 5 repeats each.
+# `dsg summarize` then splits the wobble into "which questions" vs "model randomness".
+name: noise
+model: gemma4:e4b
+engine:
+  type: ollama
+  url: http://localhost:11434
+  mode: chat
+  think: false
+system: null
+generation:
+  temperature: 0.7
+  seed: 0               # repeat i uses seed 0+i: repeats differ, reruns match
+  max_tokens: 512
+repeats: 5
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0
