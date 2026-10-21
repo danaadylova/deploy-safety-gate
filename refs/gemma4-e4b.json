@@ -1,0 +1,22 @@
+{
+  "model": "gemma4:e4b",
+  "engine": "ollama",
+  "engine_version": "0.40.6",
+  "format": "safetensors",
+  "family": "gemma4",
+  "parameter_size": "8.1B",
+  "quantization_level": "nvfp4",
+  "template": "{{ .Prompt }}",
+  "system": "",
+  "parameters": {
+    "temperature": [
+      "1"
+    ],
+    "top_k": [
+      "64"
+    ],
+    "top_p": [
+      "0.95"
+    ]
+  }
+}
