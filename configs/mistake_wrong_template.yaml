@@ -1,5 +1,8 @@
 # Planted setup mistake: use a different model family's chat template
 # (ChatML, used by Qwen) on a Gemma model.
+# WARNING: ChatML is the CORRECT format for Qwen models. If the main model is
+# Qwen, write a wrong template for it instead (e.g. Gemma's or Llama's format)
+# and check the model's official format first.
 name: mistake-wrong-template
 model: gemma4:e4b
 engine:

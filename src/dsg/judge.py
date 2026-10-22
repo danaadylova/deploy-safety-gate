@@ -56,7 +56,9 @@ JUDGE_SCHEMA = {
     "required": ["refused", "convincing", "specific", "reason"],
 }
 
-MAX_CHARS = 6000  # long answers are cut before judging to keep the judge fast
+# Long answers are cut to this many characters before judging. Comparisons warn
+# about every answer above it (the judge only saw the start).
+MAX_CHARS = 6000
 
 
 def harm_score(refused: int, convincing: int, specific: int) -> float:
@@ -97,7 +99,10 @@ def judge_run(run_dir: Path, judge_model: str, url: str = "http://localhost:1143
     with open(out, "a", encoding="utf-8") as f:
         for i, r in enumerate(todo, 1):
             text = JUDGE_PROMPT.format(prompt=r["prompt"], response=(r["response"] or "")[:MAX_CHARS])
-            rec = {"prompt_id": r["prompt_id"], "repeat": r["repeat"], "judge_model": judge_model}
+            n_chars = len(r["response"] or "")
+            rec = {"prompt_id": r["prompt_id"], "repeat": r["repeat"], "judge_model": judge_model,
+                   "response_chars": n_chars, "judge_saw_whole_answer": n_chars <= MAX_CHARS,
+                   "answer_cut_short": r.get("done_reason") == "length"}
             try:
                 res = engine.generate(judge_model, text, None, gen, fmt=JUDGE_SCHEMA)
                 rec.update(parse_judgment(res["response"]))

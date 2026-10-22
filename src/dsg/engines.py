@@ -33,6 +33,25 @@ class EngineError(RuntimeError):
     pass
 
 
+def _timing(wall: float, prompt_tokens, output_tokens, gen_tokens_per_s=None, load_s=None) -> dict:
+    """Timing recorded the same way for every engine.
+
+    wall_s            end to end: request sent -> full answer received (measured by us)
+    e2e_tokens_per_s  output tokens / wall_s. Use THIS to compare setups: it is
+                      defined identically for every engine.
+    gen_tokens_per_s  the engine's own generation-only speed, where it reports one
+                      (Ollama). Not comparable across engines; for information only.
+    """
+    return {
+        "wall_s": round(wall, 3),
+        "prompt_tokens": prompt_tokens,
+        "output_tokens": output_tokens,
+        "e2e_tokens_per_s": round(output_tokens / wall, 2) if output_tokens and wall else None,
+        "gen_tokens_per_s": round(gen_tokens_per_s, 2) if gen_tokens_per_s else None,
+        "load_s": round(load_s, 3) if load_s else None,
+    }
+
+
 class OllamaEngine:
     """Ollama's native API. mode is one of:
 
@@ -125,13 +144,9 @@ class OllamaEngine:
             "response": text_out,
             "thinking": thinking,
             "request": {"endpoint": endpoint, **payload},
-            "timing": {
-                "wall_s": round(wall, 3),
-                "prompt_tokens": data.get("prompt_eval_count"),
-                "output_tokens": eval_count,
-                "tokens_per_s": round(eval_count / (eval_ns / 1e9), 2) if eval_count and eval_ns else None,
-                "load_s": round(data["load_duration"] / 1e9, 3) if data.get("load_duration") else None,
-            },
+            "timing": _timing(wall, data.get("prompt_eval_count"), eval_count,
+                              gen_tokens_per_s=(eval_count / (eval_ns / 1e9)) if eval_count and eval_ns else None,
+                              load_s=data["load_duration"] / 1e9 if data.get("load_duration") else None),
             "done_reason": data.get("done_reason"),
         }
 
@@ -174,14 +189,7 @@ class OpenAICompatEngine:
             "response": choice["message"].get("content") or "",
             "thinking": choice["message"].get("reasoning_content"),
             "request": {"endpoint": "/v1/chat/completions", **payload},
-            "timing": {
-                "wall_s": round(wall, 3),
-                "prompt_tokens": usage.get("prompt_tokens"),
-                "output_tokens": out_tokens,
-                # Includes queueing and prompt time, so it understates pure generation speed.
-                "tokens_per_s": round(out_tokens / wall, 2) if out_tokens and wall else None,
-                "load_s": None,
-            },
+            "timing": _timing(wall, usage.get("prompt_tokens"), out_tokens),
             "done_reason": choice.get("finish_reason"),
         }
 
