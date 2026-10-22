@@ -9,7 +9,7 @@ This repo asks a model a fixed set of questions, changes one thing about how the
 
 No model is trained. A change may turn out to have no measurable safety effect; that is a valid result. A PASS only applies to the tested questions and settings, not to every use of the model.
 
-> **Status:** the pipeline works and is tested against a fake model server. The main study hasn't been run yet. The installed `gemma4:e4b` is used only for practice runs.
+> **Status:** the pipeline works and is tested against a fake model server. The main study hasn't been run yet. Main models: `llama3.2:3b` and `phi4-mini` (pending its check); judge: `gemma4:e4b`.
 
 ## Setup (Mac)
 
@@ -26,9 +26,9 @@ dsg fetch-data            # XSTest (450 questions) + StrongREJECT (313)
 ## Practice run
 
 ```bash
-dsg check-config gemma4:e4b --save-reference refs/gemma4-e4b.json   # setup check
+dsg check-config llama3.2:3b --save-reference refs/llama3.2-3b.json # setup check (main model)
 dsg run configs/smoke.yaml                                          # 100 questions; prints a run id
-dsg judge <run-id> --judge-model qwen3.5:9b                         # grade the answers
+dsg judge <run-id> --judge-model gemma4:e4b                         # grade the answers
 dsg summarize <run-id>                                              # rates, ranges, coverage, speed
 dsg label <run-id> -n 30                                            # hand-check: is the judge right?
 
@@ -102,9 +102,9 @@ Wrong verdicts (PASS when it really got worse by at least the margin, FAIL when 
 
 | File | Purpose |
 | --- | --- |
-| `configs/smoke.yaml` | Practice baseline on gemma4:e4b: chat formatting on, temperature 0, 100 questions |
+| `configs/smoke.yaml` | Practice baseline on llama3.2:3b: chat formatting on, temperature 0, 100 questions |
 | `configs/mistake_no_template.yaml` | Planted mistake: no chat formatting (Ollama raw mode) |
-| `configs/mistake_wrong_template.yaml` | Planted mistake: Qwen's format on Gemma. **Not wrong for Qwen models**: write a new one if the main model is Qwen |
+| `configs/mistake_wrong_template.yaml` | Planted mistake: Qwen's format (ChatML) on a Llama or Phi model. **Never use it on Qwen**, where it's the correct format |
 | `configs/noise.yaml` | Temperature 0.7, 5 repeats: how much answers change on their own |
 | `configs/vllm_example.yaml` | OpenAI-compatible servers (vLLM, llama.cpp's `llama-server`) |
 
@@ -125,7 +125,7 @@ Keep `data.seed` and counts identical across runs you want to compare, and set e
 
 - [x] Pipeline: run, judge, summarize, compare, config check, labeling
 - [x] Gate: three-zone rule, non-zero ranges, coverage checks, per-dataset measures, simulation
-- [ ] Practice run on gemma4:e4b; measure timing and judge accuracy
+- [ ] Practice run on llama3.2:3b (judge gemma4:e4b); measure timing and judge accuracy
 - [ ] Choose the main model (16-bit and 4-bit versions on the same hardware and software)
 - [ ] Settings table for every setup; three experiment configs for the main model
 - [ ] Peak-memory measurement

@@ -94,7 +94,9 @@ def judge_run(run_dir: Path, judge_model: str, url: str = "http://localhost:1143
     todo = [r for r in responses if (r["prompt_id"], r["repeat"]) not in done]
     log(f"judging {len(todo)} answers with {judge_model} ({len(done)} already judged)")
 
-    gen = {"temperature": 0, "seed": 0, "max_tokens": 300}
+    # Every setting explicit, so the judge model's own defaults (e.g. a presence penalty) don't apply.
+    gen = {"temperature": 0, "seed": 0, "max_tokens": 300, "top_k": 1, "top_p": 1.0,
+           "repeat_penalty": 1.0, "presence_penalty": 0.0}
     n_err = 0
     with open(out, "a", encoding="utf-8") as f:
         for i, r in enumerate(todo, 1):

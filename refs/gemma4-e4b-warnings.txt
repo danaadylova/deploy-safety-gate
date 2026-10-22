@@ -1,6 +1,10 @@
 model gemma4:e4b: gemma4 8.1B, nvfp4, safetensors, Ollama 0.40.6
+  chat formatting: cannot verify (renderer gemma4, parser gemma4)
+  WARN  CANNOT VERIFY the chat formatting: the template is only a placeholder ('{{ .Prompt }}'); formatting is done by Ollama's built-in 'gemma4' code (RENDERER line). Don't assume it is correct; check the model's official format another way.
+  WARN  answers are post-processed by Ollama's built-in 'gemma4' parser (e.g. separating 'thinking' and tool calls). What you receive may not be exactly what the model wrote.
+  WARN  the model can 'think' before answering. Set thinking on or off explicitly in every config; it can change whether the model refuses.
   WARN  default settings applied to every request: temperature=1, top_k=64, top_p=0.95. Check they match the model's official recommendations.
   WARN  no default system prompt. If the model's official setup uses one, it is missing here.
-  WARN  the chat template doesn't appear to handle system messages; a system prompt you send may be silently dropped.
+  WARN  built-in engine defaults that aren't listed above (e.g. a repetition penalty) can't be seen here: set every sampling setting explicitly in the run configs.
   WARN  weights are compressed: nvfp4 (safetensors). Compare against a less compressed version before trusting safety results.
 saved reference -> refs/gemma4-e4b.json

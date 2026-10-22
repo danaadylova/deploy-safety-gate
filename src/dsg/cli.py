@@ -137,7 +137,7 @@ def main(argv=None):
 
     s = sub.add_parser("judge", help="grade a run's answers with a judge model")
     s.add_argument("run")
-    s.add_argument("--judge-model", default="qwen3.5:9b")
+    s.add_argument("--judge-model", default="gemma4:e4b")
     s.add_argument("--url", default="http://localhost:11434")
     s.add_argument("--allow-think", action="store_true",
                    help="let the judge 'think' first (slower); off by default")

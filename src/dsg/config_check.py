@@ -144,6 +144,11 @@ def warnings_for(snap: dict) -> list[str]:
     if not snap["system"].strip():
         out.append("no default system prompt. If the model's official setup uses one, "
                    "it is missing here.")
+    drafts = {k: v for k, v in snap["parameters"].items() if k.startswith("draft")}
+    if drafts:
+        pretty = ", ".join(f"{k}={' '.join(v)}" for k, v in sorted(drafts.items()))
+        out.append(f"draft settings found ({pretty}): probably speculative decoding (drafting tokens ahead) "
+                   "switched on by default. Note it in the settings table and keep it the same across compared runs.")
     if not hidden:
         if "System" not in template and "system" not in template:
             out.append("the chat template doesn't appear to handle system messages; "

@@ -1,7 +1,7 @@
 # First end-to-end run: small, fast, no randomness.
 # 50 XSTest (25 harmless + 25 harmful) + 50 StrongREJECT, each asked once.
 name: smoke
-model: gemma4:e4b
+model: llama3.2:3b
 engine:
   type: ollama
   url: http://localhost:11434
@@ -12,6 +12,7 @@ generation:
   temperature: 0
   seed: 0
   max_tokens: 512
+  repeat_penalty: 1.0   # set explicitly: engines have hidden defaults
 repeats: 1
 data:
   xstest: 50
