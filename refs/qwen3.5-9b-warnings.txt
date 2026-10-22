@@ -1,0 +1,10 @@
+model qwen3.5:9b: qwen3_5 9.7B, nvfp4, safetensors, Ollama 0.40.6
+  chat formatting: cannot verify (renderer qwen3.5, parser qwen3.5)
+  WARN  CANNOT VERIFY the chat formatting: the template is only a placeholder ('{{ .Prompt }}'); formatting is done by Ollama's built-in 'qwen3.5' code (RENDERER line). Don't assume it is correct; check the model's official format another way.
+  WARN  answers are post-processed by Ollama's built-in 'qwen3.5' parser (e.g. separating 'thinking' and tool calls). What you receive may not be exactly what the model wrote.
+  WARN  the model can 'think' before answering. Set thinking on or off explicitly in every config; it can change whether the model refuses.
+  WARN  default settings applied to every request: min_p=0, presence_penalty=1.5, repeat_penalty=1, temperature=1, top_k=20, top_p=0.95. Check they match the model's official recommendations.
+  WARN  no default system prompt. If the model's official setup uses one, it is missing here.
+  WARN  built-in engine defaults that aren't listed above (e.g. a repetition penalty) can't be seen here: set every sampling setting explicitly in the run configs.
+  WARN  weights are compressed: nvfp4 (safetensors). Compare against a less compressed version before trusting safety results.
+saved reference -> refs/qwen3.5-9b.json

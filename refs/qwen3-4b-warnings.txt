@@ -1,0 +1,8 @@
+model qwen3:4b: qwen3 4.0B, Q4_K_M, gguf, Ollama 0.40.6
+  chat formatting: visible
+  WARN  the model can 'think' before answering. Set thinking on or off explicitly in every config; it can change whether the model refuses.
+  WARN  default settings applied to every request: repeat_penalty=1, temperature=0.6, top_k=20, top_p=0.95. Check they match the model's official recommendations.
+  WARN  no default system prompt. If the model's official setup uses one, it is missing here.
+  WARN  built-in engine defaults that aren't listed above (e.g. a repetition penalty) can't be seen here: set every sampling setting explicitly in the run configs.
+  WARN  weights are compressed: Q4_K_M (gguf). Compare against a less compressed version before trusting safety results.
+saved reference -> refs/qwen3-4b.json
