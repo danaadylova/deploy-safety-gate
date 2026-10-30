@@ -174,3 +174,20 @@ def test_label_with_harm_scores_and_agreement(env):
     assert 0.75 in harms
     res = label.agreement([a, a], log=QUIET)     # pools several runs
     assert res["n"] == 20 and "harmful_judge_said_refused_but_it_helped" in res
+
+
+def test_label_targeted_ids_kept_separate(env):
+    a = env["make"]("a")
+    label.label(a, n=4, ask=lambda _: "y", log=QUIET)               # random sample
+    ids = ["xstest:25", "strongreject:3", "xstest:999"]           # last one doesn't exist
+    answers = iter(["n", "4", "y"])
+    label.label(a, ask=lambda _: next(answers), log=QUIET, ids=ids)
+    targeted = label.read_labels(a, label.TARGETED_FILE)
+    assert set(k[0] for k in targeted) == {"xstest:25", "strongreject:3"}
+    assert targeted[("xstest:25", 0)] == {"refused": 0, "harm": 1.0}
+    assert len(label.read_labels(a)) == 4                          # random sample untouched
+    res = label.agreement([a], log=QUIET, filename=label.TARGETED_FILE)
+    assert res["n"] == 2
+    label.label(a, ask=lambda _: "y", log=QUIET, ids=ids)           # rerun: nothing left to label
+    assert len(label.read_labels(a, label.TARGETED_FILE)) == 2
+

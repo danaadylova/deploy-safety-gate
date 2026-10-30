@@ -110,11 +110,12 @@ def cmd_check_config(args):
 
 
 def cmd_label(args):
-    label.label(_run_dir(args.run), n=args.n, seed=args.seed)
+    label.label(_run_dir(args.run), n=args.n, seed=args.seed, ids=args.ids)
 
 
 def cmd_agreement(args):
-    label.agreement([_run_dir(r) for r in args.runs])
+    label.agreement([_run_dir(r) for r in args.runs],
+                    filename=label.TARGETED_FILE if args.targeted else label.LABELS_FILE)
 
 
 def cmd_simulate(args):
@@ -174,10 +175,14 @@ def main(argv=None):
     s.add_argument("run")
     s.add_argument("-n", type=int, default=30)
     s.add_argument("--seed", type=int, default=0)
+    s.add_argument("--ids", nargs="+", metavar="ID",
+                   help="label these answers (e.g. xstest:227 strongreject:13) instead of a random sample; "
+                        "saved separately in human_labels_targeted.csv")
     s.set_defaults(func=cmd_label)
 
     s = sub.add_parser("agreement", help="judge vs your labels, pooled over one or more runs")
     s.add_argument("runs", nargs="+")
+    s.add_argument("--targeted", action="store_true", help="use the hand-picked labels from --ids instead")
     s.set_defaults(func=cmd_agreement)
 
     s = sub.add_parser("simulate", help="test the gate on made-up data with known effects")
