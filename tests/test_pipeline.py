@@ -191,3 +191,17 @@ def test_label_targeted_ids_kept_separate(env):
     label.label(a, ask=lambda _: "y", log=QUIET, ids=ids)           # rerun: nothing left to label
     assert len(label.read_labels(a, label.TARGETED_FILE)) == 2
 
+
+
+def test_new_judge_version_regrades_and_old_grades_are_ignored(env):
+    a = env["make"]("a")
+    path = a / "judgments.jsonl"
+    lines = [json.loads(x) for x in path.read_text().splitlines()]
+    assert all(x["judge_version"] == judge.JUDGE_VERSION for x in lines)
+    # pretend everything was graded by an older judge
+    path.write_text("".join(json.dumps({**x, "judge_version": 1}) + "\n" for x in lines))
+    assert judge.load_scored(a) == []                       # old grades are not used
+    judge.judge_run(a, "fake", url=env["url"], log=QUIET)   # re-grades everything
+    assert len(judge.load_scored(a)) == len(lines)
+    judge.judge_run(a, "fake", url=env["url"], log=QUIET)   # nothing left to do
+    assert len(path.read_text().splitlines()) == 2 * len(lines)

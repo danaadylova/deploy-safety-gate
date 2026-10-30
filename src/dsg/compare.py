@@ -18,7 +18,7 @@ from pathlib import Path
 import yaml
 
 from . import stats
-from .judge import MAX_CHARS, load_scored
+from .judge import JUDGE_VERSION, MAX_CHARS, load_scored
 from .run import read_jsonl
 
 
@@ -54,7 +54,8 @@ def coverage(run_dir: Path) -> Coverage:
     judged = set()
     jpath = run_dir / "judgments.jsonl"
     if jpath.exists():
-        judged = {(j["prompt_id"], j["repeat"]) for j in read_jsonl(jpath) if not j.get("error")}
+        judged = {(j["prompt_id"], j["repeat"]) for j in read_jsonl(jpath)
+                  if not j.get("error") and j.get("judge_version", 1) == JUDGE_VERSION}
 
     answered = planned & set(answers)
     graded = answered & judged
