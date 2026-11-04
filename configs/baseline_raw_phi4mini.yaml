@@ -1,0 +1,31 @@
+# Inspectable baseline: the NORMAL phi4-mini chat format, built by dsg and sent in
+# raw mode, so the exact input text is saved with every answer.
+# The text is the phi4-mini template from refs/phi4-mini.json, rendered for one user
+# message with no system prompt and no tools: <|user|>{prompt}<|end|><|assistant|>
+# (no line breaks; this matches Microsoft's published Phi-4-mini format).
+#
+# Check against smoke_phi4mini.yaml (chat mode, Ollama formats the input on its side):
+#   same prompt token count and identical answers for every question at temperature 0
+#   -> Ollama's chat formatting is verified to match this text.
+#
+# Everything else matches smoke_phi4mini.yaml. Stop tokens are not set here; phi4-mini
+# stores no stop list in Ollama, so it stops at its end-of-turn token in both modes.
+# `think: false` has no raw-mode equivalent; phi4-mini doesn't think.
+name: baseline-raw-phi4mini
+model: phi4-mini
+engine:
+  type: ollama
+  url: http://localhost:11434
+  mode: raw_custom
+  raw_template: "<|user|>{prompt}<|end|><|assistant|>"
+system: null
+generation:
+  temperature: 0
+  seed: 0
+  max_tokens: 512
+  repeat_penalty: 1.0   # set explicitly: engines have hidden defaults
+repeats: 1
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0               # same seed as smoke.yaml = same 100 questions as the llama runs
