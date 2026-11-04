@@ -2,6 +2,7 @@
   "model": "llama3.2:3b",
   "engine": "ollama",
   "engine_version": "0.40.6",
+  "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
   "format": "gguf",
   "family": "llama",
   "parameter_size": "3.2B",

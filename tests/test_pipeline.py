@@ -268,3 +268,18 @@ def test_gate_command_blocks_on_mismatch(env):
     out = json.loads((env["tmp"] / "gate.json").read_text())
     assert out["decision"] == "BLOCK" and out["configuration"]["verdict"] == "MISMATCH"
     assert e.value.code == 1
+
+
+def test_runs_record_model_digest(env):
+    from dsg import run_check
+    a = env["make"]("a")
+    meta = json.loads((a / "meta.json").read_text())
+    assert meta["model_info"]["digest"] == "sha256fake0123456789"
+    b = env["make"]("b")
+    items = {i.name: i for i in run_check.check_runs(a, b).items}
+    assert items["model"].status == "MATCH" and "digest" in items["model"].detail
+    meta["model_info"]["digest"] = "sha256different"
+    (b / "meta.json").write_text(json.dumps(meta))
+    items = {i.name: i for i in run_check.check_runs(a, b).items}
+    assert items["model"].status == "MISMATCH" and "digest" in items["model"].detail
+

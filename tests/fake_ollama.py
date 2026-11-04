@@ -45,6 +45,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/version":
             return self._send({"version": "0.0-fake"})
+        if self.path == "/api/tags":
+            return self._send({"models": [{"name": "fake:latest", "model": "fake:latest",
+                                           "digest": "sha256fake0123456789"}]})
         self._send({"error": "not found"}, 404)
 
     def do_POST(self):

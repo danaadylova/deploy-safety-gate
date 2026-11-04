@@ -83,6 +83,20 @@ class OllamaEngine:
         except requests.RequestException:
             return None
 
+    def digest(self, model: str) -> str | None:
+        """The exact model revision (Ollama's content digest), from /api/tags.
+        Changes whenever the model file changes, even under the same name."""
+        try:
+            r = requests.get(f"{self.url}/api/tags", timeout=30)
+            r.raise_for_status()
+        except requests.RequestException:
+            return None
+        names = {model, model if ":" in model else f"{model}:latest"}
+        for m in r.json().get("models", []):
+            if m.get("name") in names or m.get("model") in names:
+                return m.get("digest")
+        return None
+
     def show(self, model: str) -> dict:
         r = requests.post(f"{self.url}/api/show", json={"model": model}, timeout=30)
         if r.status_code != 200:

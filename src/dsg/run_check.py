@@ -6,7 +6,8 @@ This module compares what a run ACTUALLY sent with a verified reference run, ite
 by item, without calling the model:
 
     questions            same question ids and repeats
-    model                same model name and file details (format, family, size,
+    model                same model name, exact revision (Ollama digest, when both runs
+                         recorded it) and file details (format, family, size,
                          compression, modified time)
     stored model setup   template, stored settings and system prompt as Ollama reports them
     serving software     same engine type and version
@@ -136,9 +137,16 @@ def check_runs(ref_dir: Path, cand_dir: Path, allow: list[str] | tuple = ()) -> 
         keys = ("details", "modified_at")
         a = (rcfg["model"],) + tuple(json.dumps(rinfo.get(k), sort_keys=True) for k in keys)
         b = (ccfg["model"],) + tuple(json.dumps(cinfo.get(k), sort_keys=True) for k in keys)
-        items.append(Item("model", "MATCH", rcfg["model"]) if a == b else
-                     Item("model", "MISMATCH", f"name, file details or modified time differ "
-                          f"({rcfg['model']} -> {ccfg['model']})"))
+        rd, cd = rinfo.get("digest"), cinfo.get("digest")
+        if a != b or (rd and cd and rd != cd):
+            what = "exact revision (digest)" if a == b else "name, file details or modified time"
+            items.append(Item("model", "MISMATCH", f"{what} differ ({rcfg['model']} {str(rd)[:12]} -> "
+                              f"{ccfg['model']} {str(cd)[:12]})"))
+        elif rd and cd:
+            items.append(Item("model", "MATCH", f"{rcfg['model']}, digest {rd[:12]}"))
+        else:
+            items.append(Item("model", "MATCH", f"{rcfg['model']} (same file details and modified "
+                              "time; digest not recorded in both runs)"))
         diffs = [k for k in ("template", "parameters", "system") if rinfo.get(k) != cinfo.get(k)]
         items.append(Item("stored model setup", "MISMATCH", "differs: " + ", ".join(diffs)) if diffs
                      else Item("stored model setup", "MATCH"))

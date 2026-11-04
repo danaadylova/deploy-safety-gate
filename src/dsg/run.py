@@ -45,6 +45,7 @@ def _model_details(engine, model: str) -> dict:
     except EngineError as e:
         return {"error": str(e)}
     return {
+        "digest": engine.digest(model),
         "details": info.get("details"),
         "parameters": info.get("parameters"),
         "template": info.get("template"),

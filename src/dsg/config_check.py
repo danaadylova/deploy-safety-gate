@@ -97,6 +97,7 @@ def snapshot(engine: OllamaEngine, model: str) -> dict:
         "model": model,
         "engine": "ollama",
         "engine_version": engine.version(),
+        "digest": engine.digest(model),
         "format": details.get("format"),
         "family": details.get("family"),
         "parameter_size": details.get("parameter_size"),
@@ -169,7 +170,7 @@ def warnings_for(snap: dict) -> list[str]:
 
 def diff(reference: dict, current: dict) -> list[str]:
     changes = []
-    for key in ("engine_version", "format", "family", "parameter_size", "quantization_level",
+    for key in ("engine_version", "digest", "format", "family", "parameter_size", "quantization_level",
                 "renderer", "parser", "capabilities", "system", "template", "modelfile"):
         if reference.get(key) != current.get(key):
             if key in ("template", "system", "modelfile"):
