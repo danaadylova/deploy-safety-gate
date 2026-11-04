@@ -2,6 +2,11 @@
 # (ChatML, used by Qwen) on a Llama model.
 # ChatML is wrong for Llama 3 and Phi models, so this works for llama3.2:3b and
 # phi4-mini. It is the CORRECT format for Qwen models: never use it on Qwen.
+#
+# Decision (2026-11-04, before the main runs): this mistake is "a copied ChatML setup":
+# the ChatML wrapper AND its stop token (<|im_end|>) together. Setting `stop` replaces the
+# model's own stop list, so the run differs from the baseline in two items (input and
+# generation settings); `dsg check-run` reports both. Describe it that way in the write-up.
 name: mistake-wrong-template
 model: llama3.2:3b
 engine:
