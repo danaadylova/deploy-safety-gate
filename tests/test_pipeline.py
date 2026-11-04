@@ -205,3 +205,66 @@ def test_new_judge_version_regrades_and_old_grades_are_ignored(env):
     assert len(judge.load_scored(a)) == len(lines)
     judge.judge_run(a, "fake", url=env["url"], log=QUIET)   # nothing left to do
     assert len(path.read_text().splitlines()) == 2 * len(lines)
+
+
+# --- run-level configuration check and combined decision ---------------------------
+
+def _raw_custom(env, name, template, **gen):
+    path = env["write_cfg"](name, "raw_custom")
+    cfg = yaml.safe_load(path.read_text())
+    cfg["engine"]["raw_template"] = template
+    cfg["generation"].update(gen)
+    path.write_text(yaml.safe_dump(cfg))
+    d = run(path, run_id=name, log=QUIET)
+    judge.judge_run(d, "fake", url=env["url"], log=QUIET)
+    return d
+
+
+def test_check_run_raw_reference(env):
+    from dsg import run_check
+    ref = _raw_custom(env, "ref", "<|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|>")
+    same = _raw_custom(env, "renamed", "<|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|>")
+    wrong = _raw_custom(env, "chatml", "<|im_start|>user\n{prompt}<|im_end|>\n", stop=["<|im_end|>"])
+
+    rc = run_check.check_runs(ref, same)                    # harmless rename: same effective setup
+    assert rc.verdict == "MATCH", [(i.name, i.status, i.detail) for i in rc.items]
+
+    rc = run_check.check_runs(ref, wrong)
+    st = {i.name: i for i in rc.items}
+    assert rc.verdict == "MISMATCH"
+    assert st["input"].status == "MISMATCH" and "<|start_header_id|>" in st["input"].detail \
+        and "<|im_start|>" in st["input"].detail
+    assert st["generation settings"].status == "MISMATCH" and "stop" in st["generation settings"].detail
+    assert st["model"].status == "MATCH"
+
+    rc = run_check.check_runs(ref, wrong, allow=["input", "generation settings"])
+    assert rc.verdict == "MATCH" and {i.status for i in rc.items} >= {"ALLOWED"}
+
+
+def test_check_run_chat_mode_is_never_match(env):
+    from dsg import run_check
+    a, b = env["make"]("a"), env["make"]("b")             # chat mode: server formats the input
+    rc = run_check.check_runs(a, b)
+    assert {i.name: i.status for i in rc.items}["input"] == "CANNOT VERIFY"
+    assert rc.verdict == "CANNOT VERIFY"
+
+
+def test_combined_decision_rule():
+    from dsg.run_check import decide
+    assert decide("MATCH", "PASS", [])[0] == "APPROVE"
+    assert decide("MISMATCH", "INCONCLUSIVE", ["input"])[0] == "BLOCK"
+    assert "configuration mismatch (input)" in decide("MISMATCH", "INCONCLUSIVE", ["input"])[1]
+    assert decide("MATCH", "FAIL", [])[0] == "BLOCK"
+    for c, b in [("CANNOT VERIFY", "PASS"), ("MATCH", "INCONCLUSIVE"), ("MATCH", "INCOMPLETE"),
+                 ("CANNOT VERIFY", "INCONCLUSIVE")]:
+        assert decide(c, b, [])[0] == "HOLD"
+
+
+def test_gate_command_blocks_on_mismatch(env):
+    _raw_custom(env, "ref", "U: {prompt}\nA:")
+    _raw_custom(env, "cand", "{prompt}")
+    with pytest.raises(SystemExit) as e:
+        main(["gate", "ref", "cand", "--json", "gate.json"])
+    out = json.loads((env["tmp"] / "gate.json").read_text())
+    assert out["decision"] == "BLOCK" and out["configuration"]["verdict"] == "MISMATCH"
+    assert e.value.code == 1

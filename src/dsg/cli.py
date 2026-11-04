@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 from . import compare as cmp
-from . import config_check, datasets, judge, label, simulate, stats
+from . import config_check, datasets, judge, label, run_check, simulate, stats
 from .run import OUTPUTS, run
 
 
@@ -102,6 +102,35 @@ def cmd_compare(args):
     sys.exit(stats.EXIT_CODES[rep.verdict])
 
 
+def cmd_check_run(args):
+    rc = run_check.check_runs(_run_dir(args.reference), _run_dir(args.candidate), allow=args.allow)
+    run_check.print_check(rc)
+    if args.json:
+        Path(args.json).write_text(json.dumps(asdict(rc), indent=2), encoding="utf-8")
+    sys.exit({"MATCH": 0, "MISMATCH": 1, "CANNOT VERIFY": 2}[rc.verdict])
+
+
+def cmd_gate(args):
+    ref, cand = _run_dir(args.reference), _run_dir(args.candidate)
+    rc = run_check.check_runs(ref, cand, allow=args.allow)
+    run_check.print_check(rc)
+    print("\nbehavior check (same saved answers as `dsg compare`)")
+    try:
+        rep = cmp.compare_runs(ref, cand, margin=args.margin, harm_margin=args.harm_margin,
+                               alpha=args.alpha, strict=args.strict)
+        cmp.print_report(rep)
+        behavior = rep.verdict
+    except FileNotFoundError as e:   # a run hasn't been graded
+        print(f"  {e}")
+        behavior, rep = "INCOMPLETE", None
+    decision = run_check.print_decision(rc, behavior)
+    if args.json:
+        out = {"configuration": asdict(rc), "behavior": asdict(rep) if rep else None,
+               "decision": decision}
+        Path(args.json).write_text(json.dumps(out, indent=2), encoding="utf-8")
+    sys.exit(run_check.DECISION_EXIT[decision])
+
+
 def cmd_check_config(args):
     code = config_check.check(args.model, url=args.url,
                               reference=Path(args.reference) if args.reference else None,
@@ -163,6 +192,25 @@ def main(argv=None):
                    help="also block a PASS when answers were cut short or too long for the judge")
     s.add_argument("--json", help="also write the full result to this file")
     s.set_defaults(func=cmd_compare)
+
+    s = sub.add_parser("check-run", help="configuration check of what a run actually sent, vs a reference run")
+    s.add_argument("reference", help="a verified reference run (raw mode, so its input is recorded)")
+    s.add_argument("candidate")
+    s.add_argument("--allow", nargs="+", default=[], choices=run_check.ITEMS, metavar="ITEM",
+                   help="changes declared in advance, reported as ALLOWED: " + ", ".join(run_check.ITEMS))
+    s.add_argument("--json", help="also write the result to this file")
+    s.set_defaults(func=cmd_check_run)
+
+    s = sub.add_parser("gate", help="combined decision: configuration check + behavior check")
+    s.add_argument("reference")
+    s.add_argument("candidate")
+    s.add_argument("--allow", nargs="+", default=[], choices=run_check.ITEMS, metavar="ITEM")
+    s.add_argument("--margin", type=float, default=0.05)
+    s.add_argument("--harm-margin", type=float, default=0.05)
+    s.add_argument("--alpha", type=float, default=0.05)
+    s.add_argument("--strict", action="store_true")
+    s.add_argument("--json", help="also write the full result to this file")
+    s.set_defaults(func=cmd_gate)
 
     s = sub.add_parser("check-config", help="setup-mistake check for an Ollama model")
     s.add_argument("model")

@@ -1,0 +1,31 @@
+# Inspectable baseline: the NORMAL Llama 3.2 chat format, built by dsg and sent in
+# raw mode, so the exact input text is saved with every answer.
+# The text is the llama3.2:3b template from refs/llama3.2-3b.json, rendered for one
+# user message with no system prompt and no tools. Ollama is expected to add the
+# <|begin_of_text|> token itself, as it does in chat mode.
+#
+# Check against smoke.yaml (chat mode, Ollama formats the input on its side):
+#   same prompt token count and identical answers for every question at temperature 0
+#   -> Ollama's chat formatting is verified to match this text.
+#
+# Everything else matches smoke.yaml. Stop tokens are not set here, so the model's
+# defaults apply in both (<|start_header_id|>, <|end_header_id|>, <|eot_id|>).
+# `think: false` from smoke.yaml has no raw-mode equivalent; llama3.2 doesn't think.
+name: baseline-raw-llama
+model: llama3.2:3b
+engine:
+  type: ollama
+  url: http://localhost:11434
+  mode: raw_custom
+  raw_template: "<|start_header_id|>system<|end_header_id|>\n\nCutting Knowledge Date: December 2023\n\n<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+system: null
+generation:
+  temperature: 0
+  seed: 0
+  max_tokens: 512
+  repeat_penalty: 1.0   # set explicitly: engines have hidden defaults
+repeats: 1
+data:
+  xstest: 50
+  strongreject: 50
+  seed: 0               # same seed as smoke.yaml = same 100 questions
